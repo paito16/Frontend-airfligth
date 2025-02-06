@@ -1,0 +1,30 @@
+name: Deploy Paginas HTML a S3
+
+on:
+  push:
+    branches:
+      - main  
+      # Se deben actualizar las credenciales de AWS en el repositorio de GitHub
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔄 Clonar el repositorio
+        uses: actions/checkout@v3
+
+      - name: 📂 Configurar credenciales de AWS
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 📤 Subir archivos HTML a S3
+        run: |
+          aws s3 cp index.html s3://${{ secrets.AWS_BUCKET_NAME }}/
+          aws s3 cp login.html s3://${{ secrets.AWS_BUCKET_NAME }}/
+          aws s3 cp usuario.html s3://${{ secrets.AWS_BUCKET_NAME }}/
+
+      - name: 🌍 Hacer público el contenido (opcional)
+        run: aws s3 website s3://${{ secrets.AWS_BUCKET_NAME }}/ --index-document index.html

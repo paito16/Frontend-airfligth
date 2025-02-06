@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Usuario</title>
+</head>
+<body>
+    <h1>Sesión Iniciada</h1>
+    <p id="mensaje"></p>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (token) {
+            document.getElementById('mensaje').innerText = "¡Bienvenido! Tu sesión está activa.";
+        } else {
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

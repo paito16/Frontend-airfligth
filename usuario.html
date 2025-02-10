@@ -6,11 +6,12 @@
 <body>
     <h1>Sesión Iniciada</h1>
     <p id="mensaje"></p>
+    <button onclick="window.location.href='index.html'">Home</button>
 
     <script>
-        const token = localStorage.getItem('token');
-        if (token) {
-            document.getElementById('mensaje').innerText = "¡Bienvenido! Tu sesión está activa.";
+        const username = localStorage.getItem('username');
+        if (username) {
+            document.getElementById('mensaje').innerText = "¡Bienvenido " + username + "!";
         } else {
             window.location.href = 'login.html';
         }

@@ -25,6 +25,22 @@ jobs:
           aws s3 cp index.html s3://${{ secrets.AWS_BUCKET_NAME }}/
           aws s3 cp login.html s3://${{ secrets.AWS_BUCKET_NAME }}/
           aws s3 cp usuario.html s3://${{ secrets.AWS_BUCKET_NAME }}/
+          # Aerolinea
+          aws s3 cp CrearAerolinea.html s3://${{ secrets.AWS_BUCKET_NAME }}/
+          aws s3 cp MostrarAerolinea.html s3://${{ secrets.AWS_BUCKET_NAME }}/
+          aws s3 cp EliminarAerolinea.html s3://${{ secrets.AWS_BUCKET_NAME }}/
+          aws s3 cp ActualizarAerolinea.html s3://${{ secrets.AWS_BUCKET_NAME }}/
+          # Pais
+          aws s3 cp CrearPais.html s3://${{ secrets.AWS_BUCKET_NAME }}/
+          aws s3 cp MostrarPais.html s3://${{ secrets.AWS_BUCKET_NAME }}/
+          aws s3 cp EliminarPais.html s3://${{ secrets.AWS_BUCKET_NAME }}/
+          aws s3 cp ActualizarPais.html s3://${{ secrets.AWS_BUCKET_NAME }}/
+          # Ruta
+          aws s3 cp CrearRuta.html s3://${{ secrets.AWS_BUCKET_NAME }}/
+          aws s3 cp MostrarRuta.html s3://${{ secrets.AWS_BUCKET_NAME }}/
+          aws s3 cp EliminarRuta.html s3://${{ secrets.AWS_BUCKET_NAME }}/
+          aws s3 cp ActualizarRuta.html s3://${{ secrets.AWS_BUCKET_NAME }}/
+          
 
       - name: 🌍 Hacer público el contenido (opcional)
         run: aws s3 website s3://${{ secrets.AWS_BUCKET_NAME }}/ --index-document index.html

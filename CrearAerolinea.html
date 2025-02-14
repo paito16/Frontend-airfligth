@@ -1,23 +1,25 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Crear Aerolínea</title>
 </head>
+
 <body>
     <h1>Crear Aerolínea</h1>
     <form id="formAerolinea">
         <label for="nombre">Nombre:</label><br>
         <input type="text" id="nombre" name="nombre" required><br><br>
-        
+
         <label for="aviones">Cantidad de Aviones:</label><br>
         <input type="number" id="aviones" name="aviones" required><br><br>
-        
+
         <button type="submit">Crear</button>
     </form>
     <button onclick="window.location.href='./usuario.html'">Home</button>
 
     <script>
-        document.getElementById('formAerolinea').addEventListener('submit', async function(event) {
+        document.getElementById('formAerolinea').addEventListener('submit', async function (event) {
             event.preventDefault();
             const nombre = document.getElementById('nombre').value;
             const aviones = document.getElementById('aviones').value;
@@ -33,4 +35,5 @@
         });
     </script>
 </body>
+
 </html>

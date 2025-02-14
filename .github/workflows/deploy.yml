@@ -1,4 +1,4 @@
-name: Deploy HTML on Beanstalk
+name: Deploy HTML to EC2
 
 on:
   push:
@@ -8,69 +8,24 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.11
+    - name: Set up SSH agent
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
 
-      - name: Install AWS CLI
-        run: pip install awscli
+    - name: Copy HTML files to EC2
+      run: |
+        scp -r ./path_to_your_html/* ec2-user@${{ secrets.EC2_HOST }}:/var/www/html/
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
 
-      - name: Check and Create Application
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-          EB_APP_NAME: ${{ secrets.EB_APP_NAME }}
-        run: |
-          # Verificar si la aplicación existe
-          if ! aws elasticbeanstalk describe-applications --query "Applications[?ApplicationName=='$EB_APP_NAME'] | length(@)" --output text | grep -q "1"; then
-            echo "Creando aplicación $EB_APP_NAME"
-            aws elasticbeanstalk create-application --application-name "$EB_APP_NAME" --description "Aplicación creada desde GitHub Actions"
-          else
-            echo "La aplicación $EB_APP_NAME ya existe"
-          fi
-
-      - name: Check and Create Environment
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-          EB_ENV_NAME: ${{ secrets.EB_ENV_NAME }}
-          EB_APP_NAME: ${{ secrets.EB_APP_NAME }}
-          EB_SOLUTION_STACK_NAME: ${{ secrets.EB_SOLUTION_STACK_NAME }}
-        run: |
-          # Verificar si el entorno existe
-          if ! aws elasticbeanstalk describe-environments --application-name "$EB_APP_NAME" --query "Environments[?EnvironmentName=='$EB_ENV_NAME'] | length(@)" --output text | grep -q "1"; then
-            echo "Creando entorno $EB_ENV_NAME"
-            aws elasticbeanstalk create-environment \
-              --application-name "$EB_APP_NAME" \
-              --environment-name "$EB_ENV_NAME" \
-              --solution-stack-name "$EB_SOLUTION_STACK_NAME" \
-              --option-settings file://eb-options.json
-          else
-            echo "El entorno $EB_ENV_NAME ya existe"
-          fi
-
-      - name: Deploy to AWS Elastic Beanstalk
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-          EB_ENV_NAME: ${{ secrets.EB_ENV_NAME }}
-          EB_APP_NAME: ${{ secrets.EB_APP_NAME }}
-        run: |
-          # Empaquetar y subir el código
-          zip -r deploy.zip .
-          aws elasticbeanstalk create-application-version \
-            --application-name "$EB_APP_NAME" \
-            --version-label "v-$(date '+%Y%m%d%H%M%S')" \
-            --source-bundle S3Bucket="$EB_APP_NAME",S3Key="deploy.zip"
-          aws elasticbeanstalk update-environment \
-            --environment-name "$EB_ENV_NAME" \
-            --version-label "v-$(date '+%Y%m%d%H%M%S')"
-
+    - name: Restart Nginx
+      run: |
+        ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} "sudo systemctl restart nginx"
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}

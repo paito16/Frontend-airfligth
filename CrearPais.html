@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crear País</title>
+</head>
+<body>
+    <h1>Crear País</h1>
+    <form id="formPais">
+        <label for="nombre">Nombre del País:</label><br>
+        <input type="text" id="nombre" name="nombre" required><br><br>
+        
+        <button type="submit">Crear</button>
+    </form>
+    <button onclick="window.location.href='usuario.html'">Home</button>
+
+    <script>
+        document.getElementById('formPais').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const nombre = document.getElementById('nombre').value;
+
+            const response = await fetch('/crear_pais', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre })
+            });
+
+            const result = await response.json();
+            alert(result.message);
+        });
+    </script>
+</body>
+</html>

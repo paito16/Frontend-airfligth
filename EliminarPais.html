@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head><title>Eliminar País</title></head>
+<body>
+    <h1>Eliminar País</h1>
+    <form id="formEliminarPais">
+        <label>Nombre del País:</label><br>
+        <input type="text" id="nombre" required><br><br>
+        <label>ID del País:</label><br>
+        <input type="text" id="id" required><br><br>
+        <button type="submit">Eliminar</button>
+    </form>
+    <button onclick="window.location.href='usuario.html'">Home</button>
+    <script>
+        document.getElementById('formEliminarPais').onsubmit = async (e) => {
+            e.preventDefault();
+            const nombre = document.getElementById('nombre').value;
+            const id = document.getElementById('id').value;
+            const res = await fetch('/EliminarPais', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre, id })
+            });
+            const result = await res.json();
+            alert(result.message);
+        };
+    </script>
+</body></html>

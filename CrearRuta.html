@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crear Ruta</title>
+</head>
+<body>
+    <h1>Crear Ruta</h1>
+    <form id="formRuta">
+        <label for="usuario">Usuario:</label><br>
+        <input type="text" id="usuario" name="usuario" required><br><br>
+        
+        <label for="pais_origen">País Origen:</label><br>
+        <input type="text" id="pais_origen" name="pais_origen" required><br><br>
+        
+        <label for="pais_destino">País Destino:</label><br>
+        <input type="text" id="pais_destino" name="pais_destino" required><br><br>
+        
+        <label for="aerolinea">Aerolínea:</label><br>
+        <input type="text" id="aerolinea" name="aerolinea" required><br><br>
+        
+        <button type="submit">Crear</button>
+    </form>
+    <button onclick="window.location.href='usuario.html'">Home</button>
+
+    <script>
+        document.getElementById('formRuta').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const usuario = document.getElementById('usuario').value;
+            const pais_origen = document.getElementById('pais_origen').value;
+            const pais_destino = document.getElementById('pais_destino').value;
+            const aerolinea = document.getElementById('aerolinea').value;
+
+            const response = await fetch('/crear_ruta', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usuario, pais_origen, pais_destino, aerolinea })
+            });
+
+            const result = await response.json();
+            alert(result.message);
+        });
+    </script>
+</body>
+</html>

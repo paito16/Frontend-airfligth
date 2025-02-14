@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main  
-      # Se deben actualizar las credenciales de AWS en el repositorio de GitHub
+      # Deploy on Beanstalk no on S3 AWS
 jobs:
   deploy:
     runs-on: ubuntu-latest

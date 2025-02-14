@@ -21,11 +21,11 @@ jobs:
       run: |
         echo "Deploying application to EC2..."
 
-        # Copy all HTML files to EC2
-        scp -i $AWS_KEY -o StrictHostKeyChecking=no -r ./*.html ubuntu@$AWS_HOST:/var/www/html/
+        # Copy all files to EC2
+        scp -i "$AWS_KEY" -o StrictHostKeyChecking=no -r ./ ubuntu@$AWS_HOST:/var/www/html/
 
         # Connect to EC2 and restart NGINX
-        ssh -i $AWS_KEY -o StrictHostKeyChecking=no ubuntu@$AWS_HOST << 'EOF'
+        ssh -i "$AWS_KEY" -o StrictHostKeyChecking=no ubuntu@$AWS_HOST << 'EOF'
           sudo systemctl restart nginx
           echo "Deployment completed!"
         EOF

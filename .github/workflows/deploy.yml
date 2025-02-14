@@ -3,7 +3,7 @@ name: Deploy HTML to EC2
 on:
   push:
     branches:
-      - main
+      - main 
 
 jobs:
   deploy:
@@ -20,12 +20,19 @@ jobs:
 
     - name: Copy HTML files to EC2
       run: |
-        scp -r ./path_to_your_html/* ec2-user@${{ secrets.EC2_HOST }}:/var/www/html/
+        scp -r . ubuntu@${{ secrets.EC2_HOST }}:/var/www/html/s
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+      
+    - name: Set proper permissions for HTML files
+      run: |
+        ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} "sudo chown -R www-data:www-data /var/www/html"
       env:
         SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
 
     - name: Restart Nginx
       run: |
-        ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} "sudo systemctl restart nginx"
+        ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} "sudo systemctl restart nginx"
       env:
         SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+

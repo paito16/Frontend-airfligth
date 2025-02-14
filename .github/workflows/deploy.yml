@@ -1,46 +1,76 @@
-name: Deploy Paginas HTML a S3
+name: Deploy HTML on Beanstalk
 
 on:
   push:
     branches:
-      - main  
-      # Deploy on Beanstalk no on S3 AWS
+      - main
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: 🔄 Clonar el repositorio
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: 📂 Configurar credenciales de AWS
-        uses: aws-actions/configure-aws-credentials@v1
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          python-version: 3.11
 
-      - name: 📤 Subir archivos HTML a S3
+      - name: Install AWS CLI
+        run: pip install awscli
+
+      - name: Check and Create Application
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          EB_APP_NAME: ${{ secrets.EB_APP_NAME }}
         run: |
-          aws s3 cp index.html s3://${{ secrets.AWS_BUCKET_NAME }}/
-          aws s3 cp login.html s3://${{ secrets.AWS_BUCKET_NAME }}/
-          aws s3 cp usuario.html s3://${{ secrets.AWS_BUCKET_NAME }}/
-          # Aerolinea
-          aws s3 cp CrearAerolinea.html s3://${{ secrets.AWS_BUCKET_NAME }}/
-          aws s3 cp MostrarAerolinea.html s3://${{ secrets.AWS_BUCKET_NAME }}/
-          aws s3 cp EliminarAerolinea.html s3://${{ secrets.AWS_BUCKET_NAME }}/
-          aws s3 cp ActualizarAerolinea.html s3://${{ secrets.AWS_BUCKET_NAME }}/
-          # Pais
-          aws s3 cp CrearPais.html s3://${{ secrets.AWS_BUCKET_NAME }}/
-          aws s3 cp MostrarPais.html s3://${{ secrets.AWS_BUCKET_NAME }}/
-          aws s3 cp EliminarPais.html s3://${{ secrets.AWS_BUCKET_NAME }}/
-          aws s3 cp ActualizarPais.html s3://${{ secrets.AWS_BUCKET_NAME }}/
-          # Ruta
-          aws s3 cp CrearRuta.html s3://${{ secrets.AWS_BUCKET_NAME }}/
-          aws s3 cp MostrarRuta.html s3://${{ secrets.AWS_BUCKET_NAME }}/
-          aws s3 cp EliminarRuta.html s3://${{ secrets.AWS_BUCKET_NAME }}/
-          aws s3 cp ActualizarRuta.html s3://${{ secrets.AWS_BUCKET_NAME }}/
-          
+          # Verificar si la aplicación existe
+          if ! aws elasticbeanstalk describe-applications --query "Applications[?ApplicationName=='$EB_APP_NAME'] | length(@)" --output text | grep -q "1"; then
+            echo "Creando aplicación $EB_APP_NAME"
+            aws elasticbeanstalk create-application --application-name "$EB_APP_NAME" --description "Aplicación creada desde GitHub Actions"
+          else
+            echo "La aplicación $EB_APP_NAME ya existe"
+          fi
 
-      - name: 🌍 Hacer público el contenido (opcional)
-        run: aws s3 website s3://${{ secrets.AWS_BUCKET_NAME }}/ --index-document index.html
+      - name: Check and Create Environment
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          EB_ENV_NAME: ${{ secrets.EB_ENV_NAME }}
+          EB_APP_NAME: ${{ secrets.EB_APP_NAME }}
+          EB_SOLUTION_STACK_NAME: ${{ secrets.EB_SOLUTION_STACK_NAME }}
+        run: |
+          # Verificar si el entorno existe
+          if ! aws elasticbeanstalk describe-environments --application-name "$EB_APP_NAME" --query "Environments[?EnvironmentName=='$EB_ENV_NAME'] | length(@)" --output text | grep -q "1"; then
+            echo "Creando entorno $EB_ENV_NAME"
+            aws elasticbeanstalk create-environment \
+              --application-name "$EB_APP_NAME" \
+              --environment-name "$EB_ENV_NAME" \
+              --solution-stack-name "$EB_SOLUTION_STACK_NAME" \
+              --option-settings file://eb-options.json
+          else
+            echo "El entorno $EB_ENV_NAME ya existe"
+          fi
+
+      - name: Deploy to AWS Elastic Beanstalk
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          EB_ENV_NAME: ${{ secrets.EB_ENV_NAME }}
+          EB_APP_NAME: ${{ secrets.EB_APP_NAME }}
+        run: |
+          # Empaquetar y subir el código
+          zip -r deploy.zip .
+          aws elasticbeanstalk create-application-version \
+            --application-name "$EB_APP_NAME" \
+            --version-label "v-$(date '+%Y%m%d%H%M%S')" \
+            --source-bundle S3Bucket="$EB_APP_NAME",S3Key="deploy.zip"
+          aws elasticbeanstalk update-environment \
+            --environment-name "$EB_ENV_NAME" \
+            --version-label "v-$(date '+%Y%m%d%H%M%S')"
+

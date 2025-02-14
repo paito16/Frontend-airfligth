@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Mostrar País</title>
+</head>
+
+<body>
+    <h1>Mostrar País</h1>
+    <button onclick="mostrarPaises()">Mostrar Países</button>
+    <div id="resultado"></div>
+    <button onclick="window.location.href='usuario.html'">Home</button>
+    <script>
+        async function mostrarPaises() {
+            const res = await fetch('/MostrarPais');
+            const data = await res.json();
+            document.getElementById('resultado').innerText = JSON.stringify(data, null, 2);
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Mostrar Ruta</title>
+</head>
+
+<body>
+    <h1>Mostrar Ruta</h1>
+    <button onclick="mostrarRutas()">Mostrar Rutas</button>
+    <div id="resultado"></div>
+    <button onclick="window.location.href='usuario.html'">Home</button>
+    <script>
+        async function mostrarRutas() {
+            const res = await fetch('/MostrarRuta');
+            const data = await res.json();
+            document.getElementById('resultado').innerText = JSON.stringify(data, null, 2);
+        }
+    </script>
+</body>
+
+</html>

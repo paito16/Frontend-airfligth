@@ -13,19 +13,22 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Create SSH key
+      run: |
+        echo "${{ secrets.AWS_KEY }}" > private_key.pem
+        chmod 600 private_key.pem
+
     - name: Deploy to EC2
       env:
         AWS_HOST: ${{ secrets.AWS_HOST }}
-        AWS_USER: ${{ secrets.EC2_USER }}
-        AWS_KEY: ${{ secrets.AWS_KEY }}
       run: |
         echo "Deploying application to EC2..."
 
-        # Copy all files to EC2
-        scp -i "$AWS_KEY" -o StrictHostKeyChecking=no -r ./ ubuntu@$AWS_HOST:/var/www/html/
+        # Copy all HTML files to EC2
+        scp -i private_key.pem -o StrictHostKeyChecking=no -r ./*.html ec2-user@$AWS_HOST:/var/www/html/
 
         # Connect to EC2 and restart NGINX
-        ssh -i "$AWS_KEY" -o StrictHostKeyChecking=no ubuntu@$AWS_HOST << 'EOF'
+        ssh -i private_key.pem -o StrictHostKeyChecking=no ec2-user@$AWS_HOST << 'EOF'
           sudo systemctl restart nginx
           echo "Deployment completed!"
         EOF
